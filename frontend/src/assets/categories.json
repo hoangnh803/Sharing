@@ -1,0 +1,173 @@
+{
+    "categories": [
+      {
+        "id": 169,
+        "name": "Luận Văn - Báo Cáo",
+        "children": [
+          { "id": 184, "name": "Thạc sĩ - Cao học" },
+          { "id": 185, "name": "Tiến sĩ" },
+          { "id": 186, "name": "Báo cáo nghiên cứu khoa học" },
+          { "id": 187, "name": "Đề tài tốt nghiệp" },
+          { "id": 188, "name": "Báo cáo thực tập" }
+        ]
+      },
+      {
+        "id": 154,
+        "name": "Kỹ Năng Mềm",
+        "children": [
+          { "id": 155, "name": "Tâm lý - Nghệ thuật sống" },
+          { "id": 156, "name": "Kỹ năng giao tiếp" },
+          { "id": 157, "name": "Làm việc nhóm" },
+          { "id": 158, "name": "Lãnh đạo" },
+          { "id": 159, "name": "Quản lý thời gian" }
+        ]
+      },
+      {
+        "id": 54,
+        "name": "Kinh Tế",
+        "children": [
+          { "id": 1846, "name": "Báo cáo tài chính" },
+          { "id": 55, "name": "Ngân hàng - Tín dụng" },
+          { "id": 1847, "name": "Kinh tế vi mô" },
+          { "id": 1848, "name": "Kinh tế vĩ mô" },
+          { "id": 1849, "name": "Đầu tư" }
+        ]
+      },
+      {
+        "id": 62,
+        "name": "Công Nghệ Thông Tin",
+        "children": [
+          { "id": 68, "name": "Kỹ thuật lập trình" },
+          { "id": 69, "name": "Cơ sở dữ liệu" },
+          { "id": 70, "name": "Khoa học dữ liệu" },
+          { "id": 71, "name": "Trí tuệ nhân tạo" },
+          { "id": 72, "name": "Mạng máy tính" }
+        ]
+      },
+      {
+        "id": 101,
+        "name": "Khoa Học Xã Hội",
+        "children": [
+          { "id": 102, "name": "Xã hội học" },
+          { "id": 103, "name": "Nhân học" },
+          { "id": 104, "name": "Địa lý" },
+          { "id": 105, "name": "Tâm lý học" },
+          { "id": 106, "name": "Chính trị học" },
+          { "id": 107, "name": "Lịch sử" }
+        ]
+      },
+      {
+        "id": 201,
+        "name": "Nông Lâm Nghiệp",
+        "children": [
+          { "id": 202, "name": "Nông nghiệp" },
+          { "id": 203, "name": "Lâm nghiệp" },
+          { "id": 204, "name": "Ngư nghiệp" },
+          { "id": 205, "name": "Chăn nuôi" },
+          { "id": 206, "name": "Khoa học cây trồng" }
+        ]
+      },
+      {
+        "id": 301,
+        "name": "Y Học",
+        "children": [
+          { "id": 302, "name": "Dược học" },
+          { "id": 303, "name": "Y học cổ truyền" },
+          { "id": 304, "name": "Y học dự phòng" },
+          { "id": 305, "name": "Điều dưỡng" },
+          { "id": 306, "name": "Kỹ thuật y học" },
+          { "id": 307, "name": "Y học lâm sàng" }
+        ]
+      },
+      {
+        "id": 401,
+        "name": "Giáo Dục",
+        "children": [
+          { "id": 402, "name": "Giáo dục mầm non" },
+          { "id": 403, "name": "Giáo dục tiểu học" },
+          { "id": 404, "name": "Giáo dục trung học" },
+          { "id": 405, "name": "Sư phạm" },
+          { "id": 406, "name": "Quản lý giáo dục" },
+          { "id": 407, "name": "Giáo dục đặc biệt" }
+        ]
+      },
+      {
+        "id": 501,
+        "name": "Nghệ Thuật",
+        "children": [
+          { "id": 502, "name": "Hội họa" },
+          { "id": 503, "name": "Âm nhạc" },
+          { "id": 504, "name": "Điện ảnh" },
+          { "id": 505, "name": "Nhiếp ảnh" },
+          { "id": 506, "name": "Kiến trúc" }
+        ]
+      },
+      {
+        "id": 601,
+        "name": "Văn Học",
+        "children": [
+          { "id": 602, "name": "Tiểu thuyết" },
+          { "id": 603, "name": "Thơ" },
+          { "id": 604, "name": "Văn học cổ điển" },
+          { "id": 605, "name": "Văn học hiện đại" },
+          { "id": 606, "name": "Phê bình văn học" }
+        ]
+      },
+      {
+        "id": 701,
+        "name": "Khoa Học Tự Nhiên",
+        "children": [
+          { "id": 702, "name": "Toán học" },
+          { "id": 703, "name": "Vật lý" },
+          { "id": 704, "name": "Hóa học" },
+          { "id": 705, "name": "Sinh học" },
+          { "id": 706, "name": "Khoa học trái đất" }
+        ]
+      },
+      {
+        "id": 801,
+        "name": "Kỹ Thuật",
+        "children": [
+          { "id": 802, "name": "Kỹ thuật điện" },
+          { "id": 803, "name": "Kỹ thuật cơ khí" },
+          { "id": 804, "name": "Kỹ thuật ô tô" },
+          { "id": 805, "name": "Kỹ thuật xây dựng" },
+          { "id": 806, "name": "Kỹ thuật công nghiệp" }
+        ]
+      },
+      {
+        "id": 901,
+        "name": "Ngôn Ngữ",
+        "children": [
+          { "id": 902, "name": "Tiếng Anh" },
+          { "id": 903, "name": "Tiếng Trung" },
+          { "id": 904, "name": "Tiếng Nhật" },
+          { "id": 905, "name": "Tiếng Pháp" },
+          { "id": 906, "name": "Ngôn ngữ học" }
+        ]
+      },
+      {
+        "id": 1001,
+        "name": "Triết Học",
+        "children": [
+          { "id": 1002, "name": "Triết học cổ điển" },
+          { "id": 1003, "name": "Triết học phương Tây" },
+          { "id": 1004, "name": "Triết học phương Đông" },
+          { "id": 1005, "name": "Triết học chính trị" },
+          { "id": 1006, "name": "Triết học tôn giáo" }
+        ]
+      },
+      {
+        "id": 1101,
+        "name": "Tôn Giáo",
+        "children": [
+          { "id": 1102, "name": "Phật giáo" },
+          { "id": 1103, "name": "Thiên Chúa giáo" },
+          { "id": 1104, "name": "Hồi giáo" },
+          { "id": 1105, "name": "Ấn Độ giáo" },
+          { "id": 1106, "name": "Tôn giáo dân gian" }
+        ]
+      }
+    ]
+  }
+  
