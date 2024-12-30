@@ -62,7 +62,7 @@
       </button>
       <input ref="fileInput" type="file" class="hidden" accept=".pdf,.doc,.docx" @change="handleFileSelect" />
       <p class="text-gray-400 text-sm mt-4">
-        Định dạng hỗ trợ: pdf, doc, docx
+        Định dạng hỗ trợ: pdf
       </p>
     </div>
 
@@ -108,16 +108,44 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { Upload, BookOpen, Trash2 } from 'lucide-vue-next'
 import api from '../services/api'
+import * as pdfjsLib from 'pdfjs-dist';
+
+// Thiết lập workerSrc cho pdfjsLib
+pdfjsLib.GlobalWorkerOptions.workerSrc = `/node_modules/pdfjs-dist/build/pdf.worker.mjs`;
 
 const router = useRouter()
 const isDragging = ref(false)
 const progress = ref(0) // Tiến trình tải lên
 const file = ref(null) // Lưu thông tin file
 
+
+const createPreviewImage = async (file) => {
+  const loadingTask = pdfjsLib.getDocument(URL.createObjectURL(file));
+  const pdf = await loadingTask.promise;
+  const page = await pdf.getPage(1);
+
+  const viewport = page.getViewport({ scale: 1.5 });
+  const canvas = document.createElement('canvas');
+  const context = canvas.getContext('2d');
+  canvas.height = viewport.height;
+  canvas.width = viewport.width;
+
+  const renderContext = {
+    canvasContext: context,
+    viewport: viewport
+  };
+  await page.render(renderContext).promise;
+
+  return canvas.toDataURL('image/jpeg');
+};
+
 // Hàm upload file tạm thời lên server
 const uploadTempFileToServer = async (selectedFile) => {
   const formData = new FormData();
   formData.append('document', selectedFile);
+  // Tạo ảnh preview từ PDF
+  const previewImage = await createPreviewImage(selectedFile);
+  formData.append('preview', previewImage);
 
   try {
     const response = await api.UploadTempDocument(formData, (event) => {
@@ -125,10 +153,12 @@ const uploadTempFileToServer = async (selectedFile) => {
     });
 
     if (response.data && response.data.file_path) {
+      console.log('File uploaded successfully:', response.data);
       file.value = {
         name: selectedFile.name,
         size: (selectedFile.size / 1024).toFixed(1) + ' KB',
         path: response.data.file_path,
+        preview: response.data.preview_path, // Lưu thông tin đường dẫn ảnh preview
       };
       console.log('Uploaded file:', file.value);
     }
@@ -161,7 +191,7 @@ const removeFile = async () => {
   if (file.value && file.value.path) {
     try {
       // Gửi đường dẫn file cần xóa qua params
-      await api.deleteFile(file.value.path);  // Gọi trực tiếp hàm deleteFile và truyền file_path
+      await api.deleteFile(file.value.path, file.value.preview);  // Gọi trực tiếp hàm deleteFile và truyền file_path
 
       file.value = null; // Xóa thông tin file trong state
       progress.value = 0; // Đặt lại thanh tiến trình
@@ -184,6 +214,7 @@ const submitDocuments = () => {
         file_name: file.value.name,
         file_size: file.value.size,
         file_path: file.value.path,
+        preview: file.value.preview, // Truyền thông tin ảnh preview
       },
     });
   }

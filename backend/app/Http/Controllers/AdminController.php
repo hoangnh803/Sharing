@@ -41,11 +41,18 @@ class AdminController extends Controller
             ->groupBy('date')
             ->orderBy('date')
             ->get();
+        // Số lượng tài liệu theo loại
+        $documentTypes = Document::join('document_types', 'documents.document_type_id', '=', 'document_types.id')
+            ->select('document_types.name as type', DB::raw('COUNT(documents.id) as count'))
+            ->groupBy('document_types.name')
+            ->orderBy('document_types.name')
+            ->get();
 
         return response()->json([
             'userRegistrations' => $userRegistrations,
             'documentsUploaded' => $documentsUploaded,
             'downloads' => $downloads,
+            'documentTypes' => $documentTypes,
         ]);
     }
     // Lấy danh sách người dùng

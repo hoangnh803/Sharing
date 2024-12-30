@@ -14,6 +14,8 @@ class Download extends Model
         'document_id',
         'downloaded_at',
     ];
+    
+    public $timestamps = false; // Thêm dòng này để tắt tính năng timestamps
 
     // Quan hệ với User
     public function user()

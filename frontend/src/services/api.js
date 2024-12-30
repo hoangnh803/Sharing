@@ -28,8 +28,12 @@ export default {
     forgotPassword(email) {
         return api.post('/forgot-password', email)
     },
-    logout() {
-        return api.post('/logout')
+    logout(token) {
+        return api.post('/logout', {}, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+        });
     },
     getStats() {
         return api.get('/admin/stats');
@@ -103,10 +107,108 @@ export default {
             onUploadProgress, // Callback tiến trình tải lên
         });
     },
-    deleteFile(file_path) {
+    deleteFile(filePath, previewPath) {
         return api.delete('/delete-file', {
-            params: { file_path }, // Gửi file_path qua params trong URL
+            params: {
+                file_path: filePath,
+                preview_path: previewPath,
+            }, // Gửi file_path qua params trong URL
         });
-    }
-    
+    },
+    updateUserProfile(data) {
+        return api.put('/user/profile', data)
+    },
+    getDocuments() {
+        return api.get('/user/documents');
+    },
+    deleteDocument(id) {
+        return api
+            .delete(`/user/documents/${id}`, {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}` // Assuming you're using token-based authentication
+                }
+            })
+    },
+    adminDeleteDocument(id) {
+        return api.delete(`/admin/documents/${id}`);
+    },
+    approveDocument(id) {
+        return api.post(`/admin/documents/${id}/approve`);
+    },
+    rejectDocument(id, data) {
+        return api.post(`/documents/${id}/reject`, data);
+    },
+    getReportReasons() {
+        return api.get('/report-reasons');
+    },
+    adminGetDocuments() {
+        return api.get('/admin/documents');
+    },
+    guestGetDocument(id) {
+        return api.get(`/documents/${id}`);
+    },
+    userGetDocument(id) {
+        return api.get(`/user/documents/${id}`);
+    },
+    likeDocument(id) {
+        return api.post(`/documents/${id}/like`);
+    },
+    dislikeDocument(id) {
+        return api.post(`/documents/${id}/dislike`);
+    },
+    unlikeDocument(id) {
+        return api.post(`/documents/${id}/unlike`);
+    },
+    undislikeDocument(id) {
+        return api.post(`/documents/${id}/undislike`);
+    },
+    downloadDocument(id) {
+        return api.get(`/documents/${id}/download`, { responseType: 'blob' });
+    },
+
+    getDocumentsByUniversity(universityId) {
+        return api.get(`/documents/university/${universityId}`);
+    },
+    getDocumentsByClass(classId) {
+        return api.get(`/documents/class/${classId}`);
+    },
+    getDocumentsByUniversityAndSubject(universityId, subjectId) {
+        return api.get(`/documents/university/${universityId}/subject/${subjectId}`);
+    },
+    getDocumentsByClassAndSubject(classId, subjectId) {
+        return api.get(`/documents/class/${classId}/subject/${subjectId}`);
+    },
+    reportDocument(documentId, data) {
+        return api.post(`/documents/${documentId}/report`, data)
+    },
+    removeReport(documentId) {
+        return api.post(`/documents/${documentId}/remove-report`)
+    },
+    saveDocument(documentId) {
+        return api.post(`/documents/${documentId}/save`);
+    },
+    unsaveDocument(documentId) {
+        return api.post(`/documents/${documentId}/unsave`);
+    },
+    getSavedDocuments() {
+        return api.get('/saved-documents')
+    },
+    recordView(documentId) {
+        return api.post(`/documents/${documentId}/view`);
+    },
+    getNotifications() {
+        return api.get('/notifications')
+    },
+    markNotificationAsRead(notificationId) {
+        return api.post(`/notifications/${notificationId}/read`)
+    },
+    searchDocuments(query) {
+        return api.get(`/documents/search/${query}`);
+    },
+    getRecentDocuments(userId) {
+        return api.post('/documents/recent', { user_id: userId });
+    },
+    getUserStatistics(userId) {
+        return api.get(`user/${userId}/statistics`);
+    },
 }

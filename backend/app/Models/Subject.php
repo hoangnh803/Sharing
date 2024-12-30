@@ -20,7 +20,7 @@ class Subject extends Model
     // Quan hệ với Classes qua bảng class_subjects
     public function classes()
     {
-        return $this->belongsToMany(Classes::class, 'class_subjects');
+        return $this->belongsToMany(Classes::class, 'class_subjects', 'subject_id', 'class_id');
     }
 
     // Quan hệ với Documents

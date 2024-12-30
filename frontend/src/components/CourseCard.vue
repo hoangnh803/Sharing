@@ -14,8 +14,7 @@
     </div>
 
     <!-- Course Code -->
-    <div class="text-gray-700 text-sm mb-3">
-      {{ courseCode }}
+    <div class="text-gray-700 text-sm mb-6">
     </div>
 
     <!-- Institution (Luôn nằm cuối thẻ) -->

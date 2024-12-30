@@ -55,6 +55,9 @@
 </template>
 
 <script>
+import api from '../services/api';
+
+
 export default {
   name: "DropboxComponent",
   data() {
@@ -73,6 +76,12 @@ export default {
     },
     async handleLogout() {
       try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+        alert('No user is logged in.');
+        return;
+      }
+        await api.logout(token);
         localStorage.removeItem("token"); // Xóa token
         localStorage.removeItem("user"); // Xóa thông tin người dùng
         this.$router.push("/"); // Chuyển hướng về trang đăng nhập

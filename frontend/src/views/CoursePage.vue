@@ -6,9 +6,10 @@
             <div class="flex items-center gap-2 text-sm mb-4">
                 <a href="/university" class="text-blue-500 hover:underline">Đại học</a>
                 <ChevronRight class="w-4 h-4 text-gray-400" />
-                <a href="/university/:id" class="text-blue-500 hover:underline">Đại học Bách Khoa Hà Nội</a>
+                <router-link :to="{ path: `/university/${universityId}` }" class="text-blue-500 hover:underline">{{
+                    universityName }}</router-link>
                 <ChevronRight class="w-4 h-4 text-gray-400" />
-                <span class="text-gray-600">IoT và Ứng dụng</span>
+                <span class="text-gray-600">{{ subjectName }}</span>
             </div>
 
             <!-- Course Header -->
@@ -20,21 +21,41 @@
 
                     <div>
                         <h1 class="text-2xl font-semibold mb-2">
-                            IoT và Ứng dụng
+                            {{ subjectName }}
                         </h1>
 
                         <div class="flex items-center gap-4 text-gray-600 text-sm">
                             <div class="flex items-center gap-1">
                                 <FileText class="w-4 h-4" />
-                                <span>310 documents</span>
+                                <span>{{ documents.length }} documents</span>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Search Bar -->
-                <div class=" relative">
-                    <SearchComponent is-small @search-query="handleSearchQuery" placeholder="Tìm trong IoT và Ứng dụng" />
+                <div class="relative w-80">
+                    <input v-model="searchQuery" @input="handleInput" @focus="showSuggestions = true"
+                        @blur="hideSuggestions" type="text"
+                        class="w-full py-4 px-6 rounded-full bg-white border-gray-300 border text-gray-900 placeholder-gray-500"
+                        :placeholder="`Tìm trong ${subjectName}`" />
+                    <!-- Clear Button -->
+                    <button v-if="searchQuery" @click="clearSearch" class="absolute right-16 top-2 p-2 rounded-full">
+                        <XIcon class="h-6 w-6 text-gray-500 hover:text-gray-700" />
+                    </button>
+                    <!-- Search Button -->
+                    <button @click="handleSearch" class="absolute right-2 top-2 p-2 rounded-full">
+                        <Search class="h-7 w-7 text-black" />
+                    </button>
+                    <!-- Suggestions -->
+                    <ul v-if="showSuggestions && filteredSuggestions.length"
+                        class="absolute mt-1 bg-white w-full rounded-xl shadow-lg z-10">
+                        <li v-for="subject in filteredSuggestions" :key="subject.id"
+                            @mousedown.prevent="selectSuggestion(subject)"
+                            class="px-4 py-2 text-left rounded-xl cursor-pointer hover:bg-gray-200 text-gray-700">
+                            {{ subject.title }}
+                        </li>
+                    </ul>
                 </div>
             </div>
         </div>
@@ -61,10 +82,10 @@
 
         <!-- Lecture Notes -->
         <div class="p-6 mx-20">
-            <div v-for="category in categories" :key="category.name" class="mb-12">
+            <div v-for="(docs, categoryName) in categorizedDocuments" :key="categoryName" class="mb-12">
                 <!-- Header cho từng loại -->
                 <div class="flex items-center justify-between mb-6">
-                    <h2 class="text-xl font-semibold">{{ category.name }}</h2>
+                    <h2 class="text-xl font-semibold">{{ categoryName }}</h2>
                     <div class="flex gap-8 mr-28">
                         <!-- Sort by Date -->
                         <div class="relative">
@@ -98,12 +119,12 @@
 
                 <!-- Danh sách tài liệu -->
                 <div class="space-y-4">
-                    <div v-for="doc in category.documents" :key="doc.id"
+                    <div @click="goToDocumentDetail(doc)" v-for="doc in docs.slice(0, visibleDocuments)" :key="doc.id"
                         class="flex items-center justify-between rounded-lg p-4 border-b hover:bg-[#bae6fd] transition-colors duration-200 cursor-pointer">
                         <div class="flex items-center gap-4">
                             <!-- Document Preview -->
-                            <div class="w-16 h-20 bg-gray-100 rounded-lg overflow-hidden">
-                                <img :src="doc.preview" :alt="doc.title" class="w-full h-full object-cover" />
+                            <div class="w-20 h-28 bg-gray-100 rounded-lg overflow-hidden border-4">
+                                <img :src="`http://127.0.0.1:8000/storage/${doc.preview}`" :alt="doc.title" class="w-full h-full object-cover" />
                             </div>
 
                             <!-- Document Info -->
@@ -118,52 +139,46 @@
                         </div>
 
                         <!-- Meta Info -->
-                        <div class="flex items-center gap-8">
-                            <div class="text-sm text-gray-500">{{ doc.year }}</div>
+                        <div class="flex items-center gap-8 mr-28">
+                            <div class="text-sm text-gray-500 pr-10">{{ doc.created_at.split('-')[0] }}</div>
                             <div class="flex items-center gap-2 w-24">
-                                <ThumbsUp v-if="doc.rating" class="w-4 h-4 text-green-500" />
-                                <span v-if="doc.rating" class="text-green-500">{{ doc.rating }}%</span>
-                                <span v-if="doc.reviews" class="text-gray-500 text-sm">({{ doc.reviews }})</span>
-                                <span v-if="!doc.rating" class="text-gray-500">None</span>
+                                <ThumbsUp  class="w-4 h-4 text-green-500" />
+                                <span v-if="doc.likes.length > 0" class="text-green-500">{{ ((doc.likes.filter(like => like.is_like).length / doc.likes.length) * 100).toFixed(2) }}%</span>
+                                <span v-if="doc.likes.length > 0" class="text-gray-500 text-sm">({{ doc.likes.filter(like => like.is_like).length }})</span>
                             </div>
-                            <Button severity="secondary" variant="outlined">
-                                <Bookmark class="w-5 h-5" />
-                                <span class="text-sm">Lưu</span>
-                            </Button>
                         </div>
                     </div>
                 </div>
+
                 <!-- Show More -->
-                <div class="flex justify-between mt-8 gap-4">
-                    <Button class="w-full" severity="secondary" variant="outlined">
-                        <ChevronDown class="w-4 h-4" />
-                        Hiện thêm 8 tài liệu...
-                    </Button>
-                    <Button class="w-full" severity="secondary" variant="outlined">
-                        Hiện tất cả 126 tài liệu
+                <div v-if="docs.length > 6" class="flex justify-between mt-8 gap-4">
+                    <Button v-if="visibleDocuments < docs.length" @click="showAllDocuments" class="w-full" severity="secondary" variant="outlined">
+                        Hiện tất cả tài liệu
                         <ChevronDown class="w-4 h-4" />
                     </Button>
                 </div>
             </div>
         </div>
+
     </div>
 </template>
 
 <script setup>
-import SearchComponent from '../components/SearchComponent.vue'
 import Button from 'primevue/button'
 import VerticalDocumentCard from '../components/VerticalDocumentCard.vue'
+import api from '../services/api'
+import { onMounted, computed, ref } from 'vue'
 import {
     ChevronRight,
     Folder,
     FileText,
-    Bookmark,
     ChevronDown,
     ChevronUp,
+    ThumbsUp,
 } from 'lucide-vue-next'
 
-import { ref } from 'vue'
-
+import { useRoute, useRouter } from 'vue-router'
+import { Search, X as XIcon } from 'lucide-vue-next';
 import Carousel from 'primevue/carousel';
 
 // Trạng thái active và chiều sort
@@ -179,207 +194,117 @@ function toggleFilter(type) {
         activeSort.value.direction = 'asc';
     }
 }
+const route = useRoute();
 
-// Dữ liệu tài liệu mẫu
-const documents = ref([
-    {
-        title: 'Document 1',
-        preview: 'https://via.placeholder.com/150',
-        pageNumber: 5,
-        course: 'Course 101',
-        rating: 90,
-        reviews: 120,
-        link: '/document/1'
-    },
-    {
-        title: 'Document 2 Document Document',
-        preview: 'https://via.placeholder.com/150',
-        pageNumber: 3,
-        course: 'Course 102',
-        rating: 85,
-        reviews: 80,
-        link: '#'
-    },
-    {
-        title: 'Document 3',
-        preview: 'https://via.placeholder.com/150',
-        pageNumber: 12,
-        course: 'Course 103',
-        rating: 95,
-        reviews: 200,
-        link: '#'
-    },
-    {
-        title: 'Document 3',
-        preview: 'https://via.placeholder.com/150',
-        pageNumber: 12,
-        course: 'Course 103',
-        rating: 95,
-        reviews: 200,
-        link: '#'
-    },
-    {
-        title: 'Document 3',
-        preview: 'https://via.placeholder.com/150',
-        pageNumber: 12,
-        course: 'Course 103',
-        rating: 95,
-        reviews: 200,
-        link: '#'
-    },
-    {
-        title: 'Document 3',
-        preview: 'https://via.placeholder.com/150',
-        pageNumber: 12,
-        course: 'Course 103',
-        rating: 95,
-        reviews: 200,
-        link: '#'
-    },
-    {
-        title: 'Document 3',
-        preview: 'https://via.placeholder.com/150',
-        pageNumber: 12,
-        course: 'Course 103',
-        rating: 95,
-        reviews: 200,
-        link: '#'
-    },
-    {
-        title: 'Document 3',
-        preview: 'https://via.placeholder.com/150',
-        pageNumber: 12,
-        course: 'Course 103',
-        rating: 95,
-        reviews: 200,
-        link: '#'
-    },
-    {
-        title: 'Document 3',
-        preview: 'https://via.placeholder.com/150',
-        pageNumber: 12,
-        course: 'Course 103',
-        rating: 95,
-        reviews: 200,
-        link: '#'
-    },
-    {
-        title: 'Document 3',
-        preview: 'https://via.placeholder.com/150',
-        pageNumber: 12,
-        course: 'Course 103',
-        rating: 95,
-        reviews: 200,
-        link: '#'
-    },
-    // Thêm tài liệu khác nếu cần
-]);
+const router = useRouter();
+const documents = ref([]);
+const universityId = ref(route.params.universityId);
+const subjectId = ref(route.params.subjectId);
+const documentTypes = ref([]);
 
-const categories = ref([
-    {
-        name: 'Bài giảng',
-        documents: Array.from({ length: 7 }, (_, i) => ({
-            id: i + 1,
-            title: `Bài giảng ${i + 1}`,
-            link: `#`,
-            preview: `https://via.placeholder.com/150`,
-            pageNumber: Math.floor(Math.random() * 100) + 1,
-            year: 2020 + Math.floor(Math.random() * 4),
-            rating: Math.random() > 0.5 ? Math.floor(Math.random() * 100) : null,
-            reviews: Math.random() > 0.5 ? Math.floor(Math.random() * 50) + 1 : null,
-        })),
-    },
-    {
-        name: 'Tóm tắt',
-        documents: Array.from({ length: 7 }, (_, i) => ({
-            id: i + 11,
-            title: `Tóm tắt ${i + 1}`,
-            link: `#`,
-            preview: `https://via.placeholder.com/150`,
-            pageNumber: Math.floor(Math.random() * 100) + 1,
-            year: 2020 + Math.floor(Math.random() * 4),
-            rating: Math.random() > 0.5 ? Math.floor(Math.random() * 100) : null,
-            reviews: Math.random() > 0.5 ? Math.floor(Math.random() * 50) + 1 : null,
-        })),
-    },
-    {
-        name: 'Tài liệu thực hành',
-        documents: Array.from({ length: 7 }, (_, i) => ({
-            id: i + 21,
-            title: `Tài liệu thực hành ${i + 1}`,
-            link: `#`,
-            preview: `https://via.placeholder.com/150`,
-            pageNumber: Math.floor(Math.random() * 100) + 1,
-            year: 2020 + Math.floor(Math.random() * 4),
-            rating: Math.random() > 0.5 ? Math.floor(Math.random() * 100) : null,
-            reviews: Math.random() > 0.5 ? Math.floor(Math.random() * 50) + 1 : null,
-        })),
-    },
-    {
-        name: 'Bài tập',
-        documents: Array.from({ length: 7 }, (_, i) => ({
-            id: i + 31,
-            title: `Bài tập ${i + 1}`,
-            link: `#`,
-            preview: `https://via.placeholder.com/150`,
-            pageNumber: Math.floor(Math.random() * 100) + 1,
-            year: 2020 + Math.floor(Math.random() * 4),
-            rating: Math.random() > 0.5 ? Math.floor(Math.random() * 100) : null,
-            reviews: Math.random() > 0.5 ? Math.floor(Math.random() * 50) + 1 : null,
-        })),
-    },
-    {
-        name: 'Hướng dẫn',
-        documents: Array.from({ length: 7 }, (_, i) => ({
-            id: i + 41,
-            title: `Hướng dẫn ${i + 1}`,
-            link: `#`,
-            preview: `https://via.placeholder.com/150`,
-            pageNumber: Math.floor(Math.random() * 100) + 1,
-            year: 2020 + Math.floor(Math.random() * 4),
-            rating: Math.random() > 0.5 ? Math.floor(Math.random() * 100) : null,
-            reviews: Math.random() > 0.5 ? Math.floor(Math.random() * 50) + 1 : null,
-        })),
-    },
-    {
-        name: 'Tiểu luận',
-        documents: Array.from({ length: 7 }, (_, i) => ({
-            id: i + 51,
-            title: `Tiểu luận ${i + 1}`,
-            link: `#`,
-            preview: `https://via.placeholder.com/150`,
-            pageNumber: Math.floor(Math.random() * 100) + 1,
-            year: 2020 + Math.floor(Math.random() * 4),
-            rating: Math.random() > 0.5 ? Math.floor(Math.random() * 100) : null,
-            reviews: Math.random() > 0.5 ? Math.floor(Math.random() * 50) + 1 : null,
-        })),
-    },
-    {
-        name: 'Báo cáo',
-        documents: Array.from({ length: 7 }, (_, i) => ({
-            id: i + 61,
-            title: `Báo cáo ${i + 1}`,
-            link: `#`,
-            preview: `https://via.placeholder.com/150`,
-            pageNumber: Math.floor(Math.random() * 100) + 1,
-            year: 2020 + Math.floor(Math.random() * 4),
-            rating: Math.random() > 0.5 ? Math.floor(Math.random() * 100) : null,
-            reviews: Math.random() > 0.5 ? Math.floor(Math.random() * 50) + 1 : null,
-        })),
-    },
-    {
-        name: 'Khác',
-        documents: Array.from({ length: 7 }, (_, i) => ({
-            id: i + 71,
-            title: `Tài liệu ${i + 1}`,
-            link: `#`,
-            preview: `https://via.placeholder.com/150`,
-            pageNumber: Math.floor(Math.random() * 100) + 1,
-            year: 2020 + Math.floor(Math.random() * 4),
-            rating: Math.random() > 0.5 ? Math.floor(Math.random() * 100) : null,
-            reviews: Math.random() > 0.5 ? Math.floor(Math.random() * 50) + 1 : null,
-        })),
-    },
-]);
+
+const universityName = ref('');
+const subjectName = ref('');
+
+const fetchDocuments = async () => {
+    try {
+        const response = await api.getDocumentsByUniversityAndSubject(universityId.value, subjectId.value);
+        documents.value = response.data;
+        if (documents.value.length > 0) {
+            universityName.value = documents.value[0].university.name;
+            subjectName.value = documents.value[0].subject.name;
+        }
+        console.log('Documents:', documents.value);
+    } catch (error) {
+        console.error('Failed to fetch documents:', error);
+    }
+};
+const fetchDocumentTypes = async () => {
+    try {
+        const response = await api.getDocumentTypes();
+        documentTypes.value = response.data;
+    } catch (error) {
+        console.error('Failed to fetch document types:', error);
+    }
+};
+const categorizedDocuments = computed(() => {
+    const categories = {};
+    documents.value.forEach(doc => {
+        const typeName = doc.document_type.name;
+        if (!categories[typeName]) {
+            categories[typeName] = [];
+        }
+        categories[typeName].push(doc);
+    });
+    return categories;
+});
+
+const searchQuery = ref('');
+const showSuggestions = ref(false);
+
+// Lọc gợi ý theo từ khóa (môn học)
+const filteredSuggestions = computed(() => {
+  if (!searchQuery.value) return [];
+  return documents.value.filter((document) =>
+  document.title.toLowerCase().includes(searchQuery.value.toLowerCase())
+  );
+});
+
+// Xử lý khi nhập text
+const handleInput = () => {
+  showSuggestions.value = !!filteredSuggestions.value.length;
+};
+
+// Ẩn gợi ý sau một khoảng thời gian ngắn
+const hideSuggestions = () => {
+  setTimeout(() => {
+    showSuggestions.value = false;
+  }, 200);
+};
+
+// Chọn một gợi ý (môn học)
+const selectSuggestion = (title) => {
+  const selectedDocument = documents.value.find((document) => document === title);
+  if (selectedDocument) {
+    console.log('Selected document:', selectedDocument);
+    searchQuery.value = title;
+    router.push({ path: `/document/${selectedDocument.id}` });
+  }
+  showSuggestions.value = false;
+};
+// Xóa nội dung tìm kiếm
+const clearSearch = () => {
+  searchQuery.value = '';
+};
+
+const visibleDocuments = ref(6); // Số tài liệu hiển thị ban đầu
+
+// Hàm hiển thị tất cả tài liệu
+function showAllDocuments() {
+    visibleDocuments.value = documents.value.length; // Hiển thị tất cả tài liệu
+}
+
+const goToDocumentDetail = (doc) => {
+  const user = JSON.parse(localStorage.getItem('user')); // Replace with actual method to get the role
+
+  if (user && user.role === 'admin') {
+    router.push({
+      name: 'AdminDocumentView',
+      params: { id: doc.id }
+    });
+  } else {
+    router.push({
+      name: 'DocumentView',
+      params: { id: doc.id }
+    });
+  }
+};
+
+onMounted(() => {
+    fetchDocuments();
+    fetchDocumentTypes();
+});
+
+
 
 </script>

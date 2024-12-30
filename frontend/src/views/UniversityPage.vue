@@ -22,8 +22,38 @@
       </p>
 
       <!-- Search Bar -->
-      <div class="hidden md:block flex-grow mx-96">
-        <SearchComponent placeholder="Tìm kiếm trường đại học của bạn" @search-query="handleSearchQuery" />
+      <div class="relative mx-96">
+        <input
+          v-model="searchQuery"
+          @input="handleInput"
+          @focus="showSuggestions = true"
+          @blur="hideSuggestions"
+          type="text"
+          class="w-full py-4 px-6 rounded-full bg-white border-gray-300 border text-gray-900 placeholder-gray-500"
+          placeholder="Tìm kiếm trường đại học của bạn"
+        />
+        <!-- Clear Button -->
+        <button v-if="searchQuery" @click="clearSearch" class="absolute right-16 top-2 p-2 rounded-full">
+          <XIcon class="h-6 w-6 text-gray-500 hover:text-gray-700" />
+        </button>
+        <!-- Search Button -->
+        <button @click="handleSearch" class="absolute right-2 top-2 p-2 rounded-full">
+          <Search class="h-7 w-7 text-black" />
+        </button>
+        <!-- Suggestions -->
+        <ul
+          v-if="showSuggestions && filteredSuggestions.length"
+          class="absolute mt-1 bg-white w-full rounded-xl shadow-lg z-10"
+        >
+          <li
+            v-for="university in filteredSuggestions"
+            :key="university.id"
+            @mousedown.prevent="selectSuggestion(university)"
+            class="px-4 py-2 text-left rounded-xl cursor-pointer hover:bg-gray-200 text-gray-700"
+          >
+            {{ university }}
+          </li>
+        </ul>
       </div>
     </div>
 
@@ -37,7 +67,7 @@
         <div v-for="university in universities" :key="university.name">
           <Button severity="info" variant="text" size="large"
             :class="['!text-blue-600 !hover:text-blue-700 !w-full !justify-start !flex !items-center !gap-3 ']"
-            :label="university.name" :to="{ path: university.link, query: { name: university.name } }" as="router-link">
+            :label="university.name" :to="{ path: `/university/${university.id}` }" as="router-link">
             <BuildingIcon class="w-5 h-5 text-red-400" />
             <span class="text-sm">{{ university.name }}</span>
           </Button>
@@ -49,60 +79,79 @@
 </template>
 
 <script setup>
-import SearchComponent from '../components/SearchComponent.vue'
+import { ref, onMounted, computed } from 'vue';
+import api from '../services/api';
 import Button from 'primevue/button'
 import { Building as BuildingIcon } from 'lucide-vue-next'
+import { Search, X as XIcon } from 'lucide-vue-next';
+import { useRouter } from 'vue-router';
 
-const universities = [
-  { id: '01', name: 'Đại học Bách Khoa Hà Nội', link: '/university/dai-hoc-bach-khoa-ha-noi' },
-  { name: 'Học viện Công nghệ Bưu chính Viễn thông', link: '#' },
-  { name: 'Học viện Ngoại giao Việt Nam', link: '#' },
-  { name: 'Học viện Ngân hàng', link: '#' },
-  { name: 'Học viện Tài chính', link: '#' },
-  { name: 'International University - VNU-HCM', link: '#' },
-  { name: 'Royal Melbourne Institute of Technology Vietnam', link: '#' },
-  { name: 'Trường Cao đẳng Thực hành FPT', link: '#' },
-  { name: 'Trường Đại Học Duy Tân', link: '#' },
-  { name: 'Trường Đại học Nội Vụ Hà Nội', link: '#' },
-  { name: 'Trường Đại Học Thủ Dầu Một', link: '#' },
-  { name: 'Trường Đại học Bách khoa - Đại học Quốc gia Thành phố Hồ Chí Minh', link: '#' },
-  { name: 'Trường Đại học Bách khoa Hà Nội', link: '#' },
-  { name: 'Trường Đại học Công nghiệp Hà Nội', link: '#' },
-  { name: 'Trường Đại học Công nghiệp Thành phố Hồ Chí Minh', link: '#' },
-  { name: 'Trường Đại học Cần Thơ', link: '#' },
-  { name: 'Trường Đại học Cửu Long', link: '#' },
-  { name: 'Trường Đại học FPT', link: '#' },
-  { name: 'Trường Đại học Giao thông Vận tải', link: '#' },
-  { name: 'Trường Đại học Khoa học Xã hội và Nhân văn', link: '#' },
-  { name: 'Trường Đại học Kinh tế - Tài chính Thành phố Hồ Chí Minh', link: '#' },
-  { name: 'Trường Đại học Kinh tế Thành phố Hồ Chí Minh', link: '#' },
-  { name: 'Trường Đại học Kinh tế - Luật, Đại học Quốc gia Thành phố Hồ Chí Minh', link: '#' },
-  { name: 'Trường Đại học Kinh tế, Đại học Quốc gia Hà Nội', link: '#' },
-  { name: 'Trường Đại học Kinh tế, Đại học Đà Nẵng', link: '#' },
-  { name: 'Trường Đại học Luật Hà Nội', link: '#' },
-  { name: 'Trường Đại học Luật Thành phố Hồ Chí Minh', link: '#' },
-  { name: 'Trường Đại học Mở Hà Nội', link: '#' },
-  { name: 'Trường Đại học Mở Thành phố Hồ Chí Minh', link: '#' },
-  { name: 'Trường Đại học Ngoại ngữ Tin học Thành phố Hồ Chí Minh', link: '#' },
-  { name: 'Trường Đại học Ngoại thương', link: '#' },
-  { name: 'Trường Đại học Nguyễn Tất Thành', link: '#' },
-  { name: 'Trường Đại học Ngân hàng Thành phố Hồ Chí Minh', link: '#' },
-  { name: 'Trường Đại học Sài Gòn', link: '#' },
-  { name: 'Trường Đại học Thăng Long', link: '#' },
-  { name: 'Trường Đại học Thương mại', link: '#' },
-  { name: 'Trường Đại học Trà Vinh', link: '#' },
-  { name: 'Trường Đại học Tài chính - Marketing', link: '#' },
-  { name: 'Trường Đại học Văn Lang', link: '#' },
-  { name: 'UEF - Đại học Kinh tế - Tài chính thành phố Hồ Chí Minh', link: '#' },
-  { name: 'UEH-International School of Business', link: '#' },
-  { name: 'Van Lang University', link: '#' },
-  { name: 'Đại học Bách khoa Tphcm', link: '#' },
-  { name: 'Đại học Hà Nội', link: '#' },
-  { name: 'Đại học Hàng hải Việt Nam', link: '#' },
-  { name: 'Đại học Kinh tế Quốc dân', link: '#' },
-  { name: 'Đại học Sư phạm Hà Nội', link: '#' },
-  { name: 'Đại học Tôn Đức Thắng', link: '#' }
-]
+const universities = ref([]);
+const universitySuggestions = ref([]);
+const searchQuery = ref('');
+const showSuggestions = ref(false);
+const router = useRouter();
+
+
+const fetchUniversities = async () => {
+  try {
+    const response = await api.getUniversities();
+    universities.value = response.data;
+    universitySuggestions.value = response.data.map(university => university.name);
+  } catch (error) {
+    console.error('Error fetching universities:', error);
+  }
+};
+
+
+// Lọc gợi ý theo từ khóa
+const filteredSuggestions = computed(() => {
+  if (!searchQuery.value) return [];
+  return universitySuggestions.value.filter((name) =>
+    name.toLowerCase().includes(searchQuery.value.toLowerCase())
+  );
+});
+// Xử lý khi nhập text
+const handleInput = () => {
+  showSuggestions.value = !!filteredSuggestions.value.length;
+
+};
+
+// Ẩn gợi ý sau một khoảng thời gian ngắn
+const hideSuggestions = () => {
+  setTimeout(() => {
+    showSuggestions.value = false;
+  }, 200);
+};
+
+// Chọn một gợi ý
+const selectSuggestion = (name) => {
+  const university = universities.value.find((u) => u.name === name);
+  if (university) {
+    searchQuery.value = university.name;
+    router.push({ path: `/university/${university.id}` });
+  }
+  showSuggestions.value = false;
+};
+
+// Xóa nội dung tìm kiếm
+const clearSearch = () => {
+  searchQuery.value = '';
+};
+
+const handleSearch = () => {
+  const matchedUniversity = universities.value.find(
+    (university) =>
+      university.name.toLowerCase() === searchQuery.value.toLowerCase()
+  );
+  if (matchedUniversity) {
+    router.push({ path: `/university/${matchedUniversity.id}` });
+  }
+};
+
+onMounted(() => {
+  fetchUniversities();
+});
 </script>
 
 <style scoped>

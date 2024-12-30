@@ -23,9 +23,9 @@ class Report extends Model
         return $this->belongsTo(Document::class);
     }
 
-    // Quan hệ với ReportReason
-    public function reportReason()
-    {
-        return $this->belongsTo(ReportReason::class);
-    }
+     // Quan hệ với ReportReason
+     public function reportReason()
+     {
+         return $this->belongsTo(ReportReason::class, 'report_reason_id');
+     }
 }

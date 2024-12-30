@@ -70,14 +70,37 @@
           <input type="text" placeholder="Tìm kiếm tên trường hoặc lớp"
             class="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             v-model="searchQuery" @focus="isSearchFocused = true" @blur="isSearchFocused = false" />
-          <ul v-if="filteredResults.length && isSearchFocused"
+          <ul v-if="isSearchFocused"
             class="absolute bg-white border mt-1 w-full z-10 rounded-lg">
             <li v-for="result in filteredResults" :key="result.id" class="p-2 hover:bg-gray-100 cursor-pointer"
               @click="() => { console.log('Clicked:', result); selectSchoolOrUniversity(result); }">
               {{ result.name }}
             </li>
+            <button class="p-2 hover:bg-gray-100 cursor-pointer w-full" @click="showAddSchoolOrClassPopup = true, isSearchFocused = false" >
+              Thêm mới nếu không tìm thấy tên trường hoặc lớp bạn muốn
+            </button>
           </ul>
         </div>
+        <!-- Popup thêm trường hoặc lớp -->
+<div v-if="showAddSchoolOrClassPopup" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-20">
+  <div class="bg-white p-6 rounded-lg shadow-lg w-96">
+    <h2 class="text-lg font-bold mb-4">Thêm {{ selectedType === 'university' ? 'Trường Đại Học' : 'Lớp' }}</h2>
+    <input type="text" v-model="newSchoolOrClass" placeholder="Nhập tên mới"
+      class="w-full border rounded-lg p-2 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+    <div class="flex justify-end gap-4">
+      <button class="px-4 py-2 text-gray-500" @click="showAddSchoolOrClassPopup = false">Hủy</button>
+      <button class="px-4 py-2 bg-blue-500 text-white rounded-lg" @click="addNewSchoolOrClass">Thêm</button>
+    </div>
+  </div>
+</div>
+<!-- Thông báo thành công -->
+<div
+      v-if="successMessage"
+      class="fixed top-4 right-4 bg-green-500 text-white py-2 px-4 rounded-lg shadow-lg z-30"
+    >
+      {{ successMessage }}
+    </div>
+
 
         <!-- Input tìm kiếm môn học -->
         <div class="relative" v-if="selectedSchoolOrUniversity">
@@ -85,13 +108,29 @@
           <input type="text" placeholder="Tìm kiếm môn học"
             class="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             v-model="courseQuery"  @focus="isSearchCourseFocused = true" @blur="isSearchCourseFocused = false"/>
-          <ul v-if="filteredCourses.length && isSearchCourseFocused" class="absolute bg-white border mt-1 w-full z-10 rounded-lg">
+          <ul v-if=" isSearchCourseFocused" class="absolute bg-white border mt-1 w-full z-10 rounded-lg">
             <li v-for="course in filteredCourses" :key="course.id" class="p-2 hover:bg-gray-100 cursor-pointer"
               @click="selectCourse(course)">
               {{ course.name }}
             </li>
+            <button class="p-2 hover:bg-gray-100 cursor-pointer w-full text-blue-500" @click="showAddCoursePopup = true">
+              Thêm mới môn học nếu không tìm thấy môn học bạn muốn
+            </button>
           </ul>
         </div>
+        <!-- Popup thêm môn học -->
+<div v-if="showAddCoursePopup" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-20">
+  <div class="bg-white p-6 rounded-lg shadow-lg w-96">
+    <h2 class="text-lg font-bold mb-4">Thêm môn học</h2>
+    <input type="text" v-model="newCourse" placeholder="Nhập tên môn học mới"
+      class="w-full border rounded-lg p-2 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+    <div class="flex justify-end gap-4">
+      <button class="px-4 py-2 text-gray-500" @click="showAddCoursePopup = false">Hủy</button>
+      <button class="px-4 py-2 bg-blue-500 text-white rounded-lg" @click="addNewCourse">Thêm</button>
+    </div>
+  </div>
+</div>
+
         <!-- Inputs Title, Type, and Description -->
         <div v-if="selectedCourse" class="mt-6">
           <!-- Title Input -->
@@ -106,6 +145,7 @@
             <label for="type" class="block text-sm font-medium text-gray-700">Thể loại</label>
             <select id="type" v-model="selectedTypeId" class="w-full border rounded-lg p-2" placeholder="Select a type">
               <!-- Placeholder option (chọn giá trị không hợp lệ hoặc trống để làm placeholder) -->
+              <option value="null" disabled selected>Chọn thể loại</option>
               <option v-for="type in documentTypes" :key="type.id" :value="type.id">
                 {{ type.name }}
               </option>
@@ -141,7 +181,8 @@ import { useRouter, useRoute  } from 'vue-router'
 import { BookOpen, FileText, Trash2, Building, Folder } from 'lucide-vue-next'
 import apiService from '../services/api';
 
-
+const showAddCoursePopup = ref(false); // Popup cho thêm trường/lớp
+const showAddSchoolOrClassPopup = ref(false); // Popup cho thêm môn học
 
 // Reactive variable để lưu thông tin file
 
@@ -151,18 +192,98 @@ const file = ref({
   name: route.query.file_name,
   size: route.query.file_size,
   path: route.query.file_path,
+  preview: route.query.preview,
 });
 
+
+
 const router = useRouter(); // Sử dụng router
+const newSchoolOrClass = ref(''); // Tên trường/lớp mới
+const newCourse = ref(''); // Tên môn học mới
+const successMessage = ref(''); // Thông báo thành công
 
+const addNewSchoolOrClass = async () => {
+  // Kiểm tra nếu trường nhập liệu không rỗng
+  if (newSchoolOrClass.value.trim()) {
+    try {
+      if (selectedType.value === 'university') {
+        // Gọi hàm tạo trường
+        await apiService.createUniversity({ name: newSchoolOrClass.value.trim() });
+      } else if (selectedType.value === 'class') {
+        // Gọi hàm tạo lớp
+        await apiService.addClass({ name: newSchoolOrClass.value.trim() });
+      }
+      const response = selectedType.value === 'university' ? await apiService.getUniversities() : await apiService.getClasses()
+      allResults.value = response.data // Gán dữ liệu từ API vào danh sách
 
+      // Cập nhật trạng thái và hiện thông báo
+      successMessage.value = `Đã thêm mới ${selectedType.value === 'university' ? 'Trường Đại Học' : 'Lớp'} thành công! Hãy tìm kiếm lại.`;
+          setTimeout(() => (successMessage.value = ''), 3000); // Xóa thông báo sau 3 giây
 
+          // Đặt lại input và đóng popup
+          newSchoolOrClass.value = '';
+          showAddSchoolOrClassPopup.value = false;
+    } catch (error) {
+      // Xử lý lỗi
+      console.error(`Error adding ${selectedType.value}:`, error);
+    }
+  } else {
+    console.warn('Tên trường hoặc lớp không được để trống.');
+  }
+};
+
+function addCourseToUniversityOrClass(type, id, payload) {
+    if (type === 'university') {
+        return apiService.createCourse(id, payload);
+    } else if (type === 'class') {
+        return apiService.addSubjectToClass(id, payload);
+    }
+}
+
+const addNewCourse = async () => {
+    if (newCourse.value.trim() && selectedSchoolOrUniversity.value) {
+        try {
+            // Lấy loại (university/class) và ID của trường/lớp
+            const type = selectedType.value;
+            const id = selectedSchoolOrUniversity.value.id;
+
+            // Dữ liệu gửi lên server
+            const payload = { name: newCourse.value.trim() };
+
+            // Gọi API
+            addCourseToUniversityOrClass(type, id, payload);
+
+            // Hiển thị thông báo thành công
+            successMessage.value = `Đã thêm môn học mới thành công vào ${
+                type === 'university' ? 'Trường Đại Học' : 'Lớp'
+            }! Hãy tìm kiếm lại.`;
+
+            // Làm mới danh sách môn học
+            if (type === 'university') {
+                await fetchSubjects(id);
+            } else {
+                await fetchClassSubjects(id);
+            }
+
+            // Đặt lại dữ liệu và đóng popup
+            newCourse.value = '';
+            showAddCoursePopup.value = false;
+
+            // Xóa thông báo sau 3 giây
+            setTimeout(() => (successMessage.value = ''), 3000);
+        } catch (error) {
+            console.error(`Error adding course:`, error);
+        }
+    } else {
+        console.warn('Tên môn học không được để trống hoặc chưa chọn trường/lớp.');
+    }
+};
 
 const removeFile = async () => {
   if (file.value && file.value.path) {
     try {
       // Gọi API để xóa file
-      await apiService.deleteFile(file.value.path);
+      await apiService.deleteFile(file.value.path, file.value.preview);
       console.log("File deleted successfully");
 
       // Sau khi xóa thành công, đặt lại thông tin file
@@ -191,7 +312,7 @@ const filteredCourses = computed(() =>
   courseResults.value.filter(course => course.name.toLowerCase().includes(courseQuery.value.toLowerCase()))
 )
 // Các thông tin mới cho Title, Type, và Description
-const title = ref('')
+const title = ref(file.value.name);
 const description = ref('')
 const selectedTypeId = ref()
 const documentTypes = ref([]) // Lưu trữ các type lấy từ API
@@ -309,6 +430,7 @@ const handleNext = async () => {
         title: title.value,
         description: description.value,
         file_path: filePath, // Gửi file_path từ query params
+        preview: file.value.preview, // Gửi thông tin ảnh preview
         document_type_id: selectedTypeId.value, // Gửi ID loại tài liệu
         subject_id: selectedCourse.value.id, // Gửi ID môn học
       };
@@ -343,13 +465,5 @@ const handleNext = async () => {
 </script>
 
 <style>
-ul {
-  z-index: 50;
-  /* Đảm bảo danh sách luôn hiển thị trên */
-  position: absolute;
-  top: 100%;
-  /* Hiển thị ngay dưới ô input */
-  left: 0;
-  right: 0;
-}
+
 </style>

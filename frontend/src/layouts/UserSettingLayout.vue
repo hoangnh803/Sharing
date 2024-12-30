@@ -58,6 +58,13 @@
                             <Bell class="w-5 h-5" />
                             <span>Thông báo</span>
                         </router-link>
+                        <router-link 
+                            to="/user/saved"
+                            :class="{'bg-emerald-500 text-white': isActiveRoute('/user/saved'), 'text-gray-600': !isActiveRoute('/user/notifications')}"
+                            class="w-full flex items-center gap-3 px-4 py-3 rounded-lg">
+                            <BookMarked class="w-5 h-5" />
+                            <span>Tài liệu đã lưu</span>
+                        </router-link>
                     </nav>
                 </div>
 
@@ -71,18 +78,37 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { GraduationCap, FileText, User, Bell } from 'lucide-vue-next'
+import { GraduationCap, FileText, User, Bell, BookMarked } from 'lucide-vue-next'
+import api from '../services/api'
 
 const route = useRoute()
 const user = ref({
+    id: 0,
     name: 'Nguyễn Huy Hoàng',
     viewCount: 0,
     documentCount: 0,
     downloadCount: 0
 })
 
+
+// Retrieve user data from localStorage when component is mounted
+onMounted(() => {
+  const storedUser = JSON.parse(localStorage.getItem('user'))
+  if (storedUser) {
+    user.value.name = storedUser.name
+    user.value.id = storedUser.id
+  }
+})
+// Lấy thống kê lượt xem, tài liệu, lượt tải từ API
+onMounted(async () => {
+    const response = await api.getUserStatistics(user.value.id)
+    console.log(response)
+    user.value.viewCount = response.data.total_views
+    user.value.documentCount = response.data.document_count
+    user.value.downloadCount = response.data.total_downloads
+})
 // Hàm kiểm tra xem route hiện tại có khớp với route của link không
 const isActiveRoute = (path) => {
     return route.path === path

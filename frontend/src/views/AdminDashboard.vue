@@ -19,8 +19,13 @@
     </div>
 
     <!-- Biểu đồ -->
-    <div class="chart">
-      <canvas id="combinedChart"></canvas>
+    <div class=" flex flex-wrap">
+      <div class=" w-[750px]  ">
+        <canvas id="combinedChart"></canvas>
+      </div>
+      <div class="w-[400px]">
+        <canvas id="documentTypeChart"></canvas>
+      </div>
     </div>
   </div>
 </template>
@@ -58,6 +63,7 @@ export default {
       try {
         const response = await apiService.getChartData();
         this.chartData = response.data;
+        console.log('Chart data:', this.chartData);
         this.renderCharts();
       } catch (error) {
         console.error('Error fetching chart data:', error);
@@ -111,6 +117,42 @@ export default {
           },
         },
       });
+      // Biểu đồ tròn
+      const ctxPie = document.getElementById('documentTypeChart').getContext('2d');
+      new Chart(ctxPie, {
+        type: 'pie',
+        data: {
+          labels: this.chartData.documentTypes.map(item => item.type),
+          datasets: [
+            {
+              label: 'Document Types',
+              data: this.chartData.documentTypes.map(item => item.count),
+              backgroundColor: [
+          'rgba(255, 99, 132, 0.2)',
+          'rgba(54, 162, 235, 0.2)',
+          'rgba(255, 206, 86, 0.2)',
+          'rgba(75, 192, 192, 0.2)',
+          'rgba(153, 102, 255, 0.2)',
+          'rgba(255, 159, 64, 0.2)',
+          'rgba(199, 199, 199, 0.2)',
+          'rgba(83, 102, 255, 0.2)',
+              ],
+              borderColor: [
+              'rgba(255, 99, 132, 1)',
+          'rgba(54, 162, 235, 1)',
+          'rgba(255, 206, 86, 1)',
+          'rgba(75, 192, 192, 1)',
+          'rgba(153, 102, 255, 1)',
+          'rgba(255, 159, 64, 1)',
+          'rgba(199, 199, 199, 1)',
+          'rgba(83, 102, 255, 1)',
+
+              ],
+              borderWidth: 1,
+            },
+          ],
+        },
+      });
     },
   },
   mounted() {
@@ -131,7 +173,11 @@ export default {
   border-radius: 0.5rem;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
-
+.charts-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
 .chart {
   margin-top: 2rem;
   width: 100%;

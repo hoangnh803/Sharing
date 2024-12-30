@@ -18,14 +18,24 @@
             </div>
           </div>
           <div class="flex items-center gap-4">
-            <Button label="Tải lên" severity="info" variant="text"
+            <Button label="Tải lên" severity="info" variant="text" @click="handleUploadClick"
               :class="['!px-4', isScrolled ? '!text-gray-500 !hover:text-gray-900' : '']" />
             <Button label="Đăng nhập" severity="success" rounded as="router-link"  to="/login"/>
           </div>
         </div>
       </div>
     </nav>
-
+<!-- Popup thông báo -->
+<div v-if="showLoginModal" class="z-50 fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+      <div class="bg-white p-6 rounded-lg shadow-lg">
+        <h3 class="text-lg font-medium leading-6 text-gray-900">Thông báo</h3>
+        <p class="mt-2">Bạn cần phải đăng nhập để tiếp tục!</p>
+        <div class="mt-4 flex justify-end">
+          <button @click="showLoginModal = false" class="bg-gray-500 text-white px-4 py-2 rounded-md mr-2">Đóng</button>
+          <button @click="redirectToLogin" class="bg-blue-500 text-white px-4 py-2 rounded-md">Đăng nhập</button>
+        </div>
+      </div>
+    </div>
     <!-- Hero Section -->
     <div class="relative overflow-hidden bg-[#112f59]">
       <!-- Decorative blobs -->
@@ -105,8 +115,8 @@
         <!-- Nội dung cho mỗi tab -->
         <div v-if="activeTab === 'universities'" class="flex flex-row flex-wrap justify-center items-start mb-12 gap-4">
           <div v-for="university in universities" :key="university">
-            <Button severity="info" variant="outlined" rounded="" size="large">
-              {{ university }}
+            <Button severity="info" variant="outlined" rounded="" size="large" @click="navigateToUniversity(university.id)">
+              {{ university.name }}
             </Button>
           </div>
 
@@ -114,9 +124,9 @@
         </div>
 
         <div v-if="activeTab === 'PhoThong'" class="flex flex-row flex-wrap justify-center items-start mb-12 gap-8">
-          <Button v-for="grade in grades" :key="grade" rounded="" size="large" href="#" severity="info"
-            variant="outlined">
-            Lớp {{ grade }}
+          <Button v-for="classItem in classes" :key="classItem.id" rounded="" size="large" href="#" severity="info"
+            variant="outlined" @click="navigateToClass(classItem.id)">
+            {{ classItem.name }}
           </Button>
         </div>
 
@@ -193,9 +203,11 @@
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { useRouter } from 'vue-router'
 import {  Facebook, Twitter, Instagram, BookOpen } from 'lucide-vue-next'
 import Button from 'primevue/button';
 import SearchComponent from '../components/SearchComponent.vue'; // Import SearchComponent
+import api from '../services/api';
 
 const scrollToTop = () => {
       window.scrollTo({
@@ -207,20 +219,49 @@ const scrollToTop = () => {
 
 const activeTab = ref('universities'); // Tab mặc định là "universities"
 
-const universities = ref([
-  'Học viện Công nghệ Bưu chính Viễn thông',
-  'Trường Đại học Bách khoa - Đại học Quốc gia Thành phố Hồ Chí Minh',
-  'Trường Đại học Cần Thơ',
-  'Trường Đại học Giao thông Vận tải',
-  'Trường Đại học Kinh tế - Luật, Đại học Quốc gia Thành phố Hồ Chí Minh',
-  'Trường Đại học Kinh tế, Đại học Quốc gia Hà Nội',
-  'Trường Đại học Luật Hà Nội',
-  'Trường Đại học Ngân hàng Thành phố Hồ Chí Minh',
-  'Trường Đại học Thăng Long',
-  'Trường Đại học Tài chính - Marketing'
-])
+const universities = ref([]);
+const classes = ref([]);
 
-const grades = Array.from({ length: 12 }, (_, i) => i + 1) // Tạo mảng chứa các lớp từ 1 đến 12
+const fetchUniversitiesAndClasses = async () => {
+  try {
+    const [universitiesResponse, classesResponse] = await Promise.all([
+      api.getUniversities(),
+      api.getClasses()
+    ]);
+    universities.value = universitiesResponse.data;
+    classes.value = classesResponse.data;
+  } catch (error) {
+    console.error('Error fetching universities and classes:', error);
+  }
+};
+const router = useRouter();
+
+const navigateToUniversity = (universityId) => {
+  router.push({ path: `/university/${universityId}` });
+};
+
+const navigateToClass = (classId) => {
+  router.push({ path: `/class/${classId}` });
+};
+
+const isLoggedIn = ref(false); // Giả sử bạn có cách để kiểm tra trạng thái đăng nhập
+const showLoginModal = ref(false);
+
+const handleUploadClick = () => {
+  if (!isLoggedIn.value) {
+    showLoginModal.value = true;
+    return;
+  }
+  router.push({ path: '/upload' });
+};
+
+const redirectToLogin = () => {
+  router.push({ name: 'Login' });
+};
+
+onMounted(() => {
+  fetchUniversitiesAndClasses();
+});
 
 
 const companyLinks = [

@@ -6,7 +6,8 @@ export default createStore({
     state: {
         user: null,
         documents: [],
-        notifications: [] // Thêm trạng thái thông báo
+        notifications: [],
+        unreadNotificationsCount: 0
     },
     mutations: {
         setUser(state, user) {
@@ -18,6 +19,16 @@ export default createStore({
         },
         setNotifications(state, notifications) {
             state.notifications = notifications
+        },
+        setUnreadNotificationsCount(state, count) {
+            state.unreadNotificationsCount = count
+        },
+        markNotificationAsRead(state, notificationId) {
+            const notification = state.notifications.find(n => n.id === notificationId)
+            if (notification) {
+                notification.read_at = new Date().toISOString()
+                state.unreadNotificationsCount -= 1
+            }
         },
         logout(state) {
             state.user = null
@@ -59,9 +70,20 @@ export default createStore({
         async fetchNotifications({ commit }) {
             try {
                 const response = await api.getNotifications()
-                commit('setNotifications', response.data.notifications)
+                commit('setNotifications', response.data)
+                const unreadCount = response.data.filter(n => !n.read_at).length
+                commit('setUnreadNotificationsCount', unreadCount)
             } catch (error) {
                 console.error('Fetch notifications error:', error)
+                throw error
+            }
+        },
+        async markNotificationAsRead({ commit }, notificationId) {
+            try {
+                await api.markNotificationAsRead(notificationId)
+                commit('markNotificationAsRead', notificationId)
+            } catch (error) {
+                console.error('Mark notification as read error:', error)
                 throw error
             }
         },
@@ -109,8 +131,7 @@ export default createStore({
     },
     getters: {
         isLoggedIn: state => !!state.user,
-        user: state => state.user,
         notifications: state => state.notifications,
-        unreadNotificationsCount: state => state.notifications.filter(notification => !notification.read).length
+        unreadNotificationsCount: state => state.unreadNotificationsCount
     }
 })

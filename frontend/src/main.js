@@ -7,6 +7,7 @@ import store from './store'
 import PrimeVue from 'primevue/config';
 import Aura from '@primevue/themes/aura';
 
+
 /* import the fontawesome core */
 import { library } from '@fortawesome/fontawesome-svg-core'
 
@@ -16,6 +17,8 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 /* import specific icons */
 import { faUserSecret } from '@fortawesome/free-solid-svg-icons'
 import { fas } from '@fortawesome/free-solid-svg-icons'
+// Thêm cấu hình Echo và Pusher vào main.js
+
 
 /* add icons to the library */
 library.add(faUserSecret, fas)

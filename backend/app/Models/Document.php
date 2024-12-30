@@ -13,6 +13,7 @@ class Document extends Model
         'title',
         'description',
         'file_path',
+        'preview',
         'type',
         'uploader_id',
         'university_id',
@@ -51,6 +52,22 @@ class Document extends Model
     public function documentType()
     {
         return $this->belongsTo(DocumentType::class);
+    }
+    // Quan hệ với Like
+    public function likes()
+    {
+        return $this->hasMany(Like::class);
+    }
+
+    // Quan hệ với Download
+    public function downloads()
+    {
+        return $this->hasMany(Download::class);
+    }
+    // Quan hệ với Report
+    public function reports()
+    {
+        return $this->hasMany(Report::class);
     }
 }
 

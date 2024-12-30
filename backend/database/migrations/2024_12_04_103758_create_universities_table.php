@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('universities', function (Blueprint $table) {
             $table->id(); // ID trường Đại học
-            $table->string('name', 255); // Tên trường
+            $table->string('name', 255)->unique(); // Tên trường
             $table->timestamps(); // Ngày tạo và cập nhật
         });
     }

@@ -12,8 +12,8 @@
             <div class="hidden md:flex items-center ml-20 space-x-8">
               <Button label="Đại học" :severity="[isScrolled ? '' : 'info']" variant="text" rounded as="router-link"
                 to="/university" :class="['!px-4 !text-gray-500 !hover:text-gray-900']" />
-              <Button label="Phổ thông" :severity="[isScrolled ? '' : 'info']" variant="text" rounded
-                :class="['!px-4 !text-gray-500 !hover:text-gray-900']" />
+              <Button label="Phổ thông" :severity="[isScrolled ? '' : 'info']" variant="text" rounded as="router-link"
+                to="/class" :class="['!px-4 !text-gray-500 !hover:text-gray-900']" />
             </div>
           </div>
           <div class="hidden md:flex items-center space-x-8">
@@ -32,7 +32,7 @@
       <!-- Continue Reading Document -->
       <div class="my-12">
         <h2 class="text-xl font-semibold mb-6">Tiếp tục đọc</h2>
-        <Carousel :value="documents" :numVisible="7" :numScroll="2">
+        <Carousel :value="recentDocuments" :numVisible="7" :numScroll="2">
           <template #item="slotProps">
             <VerticalDocumentCard :doc="slotProps.data" class="m-2" />
           </template>
@@ -41,7 +41,7 @@
       <!-- Recomment for you Document -->
       <div class="my-12">
         <h2 class="text-xl font-semibold mb-6">Tài liệu dành cho bạn</h2>
-        <Carousel :value="documents" :numVisible="7" :numScroll="2">
+        <Carousel :value="relatedDocuments" :numVisible="7" :numScroll="2">
           <template #item="slotProps">
             <VerticalDocumentCard :doc="slotProps.data" class="m-2" />
           </template>
@@ -49,12 +49,12 @@
       </div>
 
     </div>
+    <UserFooter />
   </div>
 </template>
 
 
 <script setup>
-import { ref } from 'vue'
 import Button from 'primevue/button'
 import { BookOpen } from 'lucide-vue-next'
 import SearchComponent from '../components/SearchComponent.vue'
@@ -62,100 +62,29 @@ import NotificationDropdown from '../components/NotificationDropdown.vue'
 import UserDropdown from '../components/UserDropdown.vue'
 import VerticalDocumentCard from '../components/VerticalDocumentCard.vue'
 import Carousel from 'primevue/carousel';
+import api from '../services/api';
+import { ref, onMounted } from 'vue';
+import UserFooter from '../components/UserFooter.vue';
 
-// Dữ liệu tài liệu mẫu
-const documents = ref([
-  {
-    title: 'Document 1',
-    preview: 'https://via.placeholder.com/150',
-    pageNumber: 5,
-    course: 'Course 101',
-    rating: 90,
-    reviews: 120,
-    link: '/document/1'
-  },
-  {
-    title: 'Document 2 Document Document',
-    preview: 'https://via.placeholder.com/150',
-    pageNumber: 3,
-    course: 'Course 102',
-    rating: 85,
-    reviews: 80,
-    link: '#'
-  },
-  {
-    title: 'Document 3',
-    preview: 'https://via.placeholder.com/150',
-    pageNumber: 12,
-    course: 'Course 103',
-    rating: 95,
-    reviews: 200,
-    link: '#'
-  },
-  {
-    title: 'Document 3',
-    preview: 'https://via.placeholder.com/150',
-    pageNumber: 12,
-    course: 'Course 103',
-    rating: 95,
-    reviews: 200,
-    link: '#'
-  },
-  {
-    title: 'Document 3',
-    preview: 'https://via.placeholder.com/150',
-    pageNumber: 12,
-    course: 'Course 103',
-    rating: 95,
-    reviews: 200,
-    link: '#'
-  },
-  {
-    title: 'Document 3',
-    preview: 'https://via.placeholder.com/150',
-    pageNumber: 12,
-    course: 'Course 103',
-    rating: 95,
-    reviews: 200,
-    link: '#'
-  },
-  {
-    title: 'Document 3',
-    preview: 'https://via.placeholder.com/150',
-    pageNumber: 12,
-    course: 'Course 103',
-    rating: 95,
-    reviews: 200,
-    link: '#'
-  },
-  {
-    title: 'Document 3',
-    preview: 'https://via.placeholder.com/150',
-    pageNumber: 12,
-    course: 'Course 103',
-    rating: 95,
-    reviews: 200,
-    link: '#'
-  },
-  {
-    title: 'Document 3',
-    preview: 'https://via.placeholder.com/150',
-    pageNumber: 12,
-    course: 'Course 103',
-    rating: 95,
-    reviews: 200,
-    link: '#'
-  },
-  {
-    title: 'Document 3',
-    preview: 'https://via.placeholder.com/150',
-    pageNumber: 12,
-    course: 'Course 103',
-    rating: 95,
-    reviews: 200,
-    link: '#'
-  },
-  // Thêm tài liệu khác nếu cần
-]);
+const recentDocuments = ref([]);
+const relatedDocuments = ref([]);
+
+const user = JSON.parse(localStorage.getItem('user')); // Thay thế bằng ID người dùng thực tế nếu không có trong localStorage
+
+const fetchRecentDocuments = async () => {
+  try {
+    const response = await api.getRecentDocuments(user.id);
+    recentDocuments.value = response.data.recentDocuments;
+    relatedDocuments.value = response.data.relatedDocuments;
+
+    console.log('Recent documents:', relatedDocuments.value);
+  } catch (error) {
+    console.error('Error fetching recent documents:', error);
+  }
+};
+
+onMounted(() => {
+  fetchRecentDocuments();
+});
 
 </script>

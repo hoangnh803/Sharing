@@ -26,12 +26,18 @@ import UserDocument from '../views/UserDocument.vue';
 import UserNotification from '../views/UserNotification.vue';
 import UploadDetail from '../views/UploadDetail.vue';
 import Congartulations from '../views/CongartulationPage.vue';
+import AdminDocumentView from '../views/AdminDocumentView.vue';
+import SavedDocuments from '../views/SaveDocument.vue';
+import AdminNotification from '../views/AdminNotification.vue';
+import ClassPage from '../views/ClassPage.vue';
+import ClassChild from '../views/ClassChild.vue';
+import CourseClassPage from '../views/CourseClassPage.vue';
 
 const routes = [
-  {path: '/', name: 'HomePage', component: HomePage},
-  { 
-    path: '/upload', 
-    component: UploadDocument, 
+  { path: '/', name: 'HomePage', component: HomePage },
+  {
+    path: '/upload',
+    component: UploadDocument,
     meta: { requiresAuth: true },
   },
   {
@@ -39,13 +45,34 @@ const routes = [
     component: UploadDetail,
   },
   {
+    path: '/search',
+    name: 'SearchView',
+    component: SearchView
+  },
+  {
     path: '/',
     component: UserLayout,
     children: [
       { path: '/university', component: UniversityPage },
-      { path: '/university/:id', component: UniversityChild },
-      { path: '/courses/:id', component: CoursePage },
-      { path: '/document/:id', component: DocumentView },
+      {
+        path: '/university/:id', name: 'UniversityChild',
+        component: UniversityChild
+      },
+      {
+        path: '/university/:universityId/courses/:subjectId', name: 'CoursePage',
+        component: CoursePage, props: true
+      },
+      { path: '/class', component: ClassPage },
+      {
+        path: '/class/:id', name: 'ClassChild',
+        component: ClassChild
+      },
+      {
+        path: '/class/:classId/courses/:subjectId', name: 'CourseClassPage',
+        component: CourseClassPage, props: true
+      },
+      { path: '/document/:id', name: 'DocumentView', component: DocumentView },
+      
       {
         path: '/search',
         name: 'SearchView',
@@ -76,6 +103,8 @@ const routes = [
             name: 'UserNotification',
             component: UserNotification
           },
+          { path: 'saved', name: 'SavedDocuments', component: SavedDocuments }
+
         ]
       }
     ],
@@ -86,8 +115,8 @@ const routes = [
   { path: '/forgot-password', component: ForgotPassword },
 
   {
-    path: '/home', 
-    component: HomeView, 
+    path: '/home',
+    component: HomeView,
     meta: { requiresAuth: true } // Yêu cầu đăng nhập
   },
   {
@@ -97,7 +126,9 @@ const routes = [
     children: [
       { path: 'dashboard', component: AdminDashboard, name: 'AdminDashboard' },
       { path: 'users', component: AdminUsers },
+      { path: 'notifications', component: AdminNotification, name: 'AdminNotification' },
       { path: 'documents', component: AdminDocuments },
+      { path: 'documents/:id', component: AdminDocumentView, name: 'AdminDocumentView', props: true },
       { path: 'university', component: AdminUniversity },
       {
         path: 'university/:universityId/subjects',

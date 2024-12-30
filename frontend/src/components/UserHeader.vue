@@ -18,8 +18,8 @@
           <Button label="Đại học" :severity="info" variant="text" rounded
             :class="['!px-4 !text-gray-500 !hover:text-gray-900']" as="router-link"  to="/university"/>
           <Button label="Phổ thông" variant="text" rounded
-            :class="['!px-4 !text-gray-500 !hover:text-gray-900']" as="router-link"  to="/university"/>
-          <Button label="Tài lên" variant="text" as="router-link"  to="/upload"
+            :class="['!px-4 !text-gray-500 !hover:text-gray-900']" as="router-link"  to="/class"/>
+          <Button label="Tải lên" variant="text" @click="handleUploadClick"
             :class="['!px-4 !text-gray-500 !hover:text-gray-900']" />
 
           <!-- Hiển thị Avatar và Chuông nếu đã đăng nhập -->
@@ -42,6 +42,17 @@
       </div>
     </div>
   </nav>
+  <!-- Popup thông báo -->
+  <div v-if="showLoginModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+    <div class="bg-white p-6 rounded-lg shadow-lg">
+      <h3 class="text-lg font-medium leading-6 text-gray-900">Thông báo</h3>
+      <p class="mt-2">Bạn cần phải đăng nhập để tiếp tục!</p>
+      <div class="mt-4 flex justify-end">
+        <button @click="showLoginModal = false" class="bg-gray-500 text-white px-4 py-2 rounded-md mr-2">Đóng</button>
+        <button @click="redirectToLogin" class="bg-blue-500 text-white px-4 py-2 rounded-md">Đăng nhập</button>
+      </div>
+    </div>
+  </div>
 </template>
 
   
@@ -52,6 +63,7 @@ import Button from 'primevue/button';
 import { ref, onMounted } from 'vue';
 import NotificationDropdown from './NotificationDropdown.vue';
 import UserDropdown from './UserDropdown.vue';
+import { useRouter } from 'vue-router';
 
 const isLoggedIn = ref(false); // Trạng thái đăng nhập
 
@@ -60,6 +72,20 @@ onMounted(() => {
   const token = localStorage.getItem('token');
   isLoggedIn.value = !!token; // Nếu token tồn tại, chuyển trạng thái đăng nhập thành true
 });
+const showLoginModal = ref(false);
+const router = useRouter();
+
+const handleUploadClick = () => {
+  if (!isLoggedIn.value) {
+    showLoginModal.value = true;
+    return;
+  }
+  router.push({ path: '/upload' });
+};
+
+const redirectToLogin = () => {
+  router.push({ name: 'Login' });
+};
 
 function handleSearchQuery(query) {
   console.log(query);

@@ -81,16 +81,31 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
-        // Kiểm tra xem người dùng đã đăng nhập hay chưa
-    if (!$request->user()) {
-        return response()->json(['error' => 'Unauthenticated'], 401);
-    }
-    
-        $request->user()->currentAccessToken()->delete();
+        try {
+            // Lấy thông tin user hiện tại
+            $user = $request->user();
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Logged out successfully'
-        ]);
+            // Kiểm tra nếu user đã đăng nhập
+            if (!$user) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Không tìm thấy người dùng đang đăng nhập.'
+                ], 401);
+            }
+
+            // Xóa token hiện tại của người dùng
+            $user->currentAccessToken()->delete();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Đăng xuất thành công.'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Đăng xuất thất bại.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }
