@@ -43,7 +43,7 @@
     </div>
   </nav>
   <!-- Popup thông báo -->
-  <div v-if="showLoginModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+  <div v-if="showLoginModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
     <div class="bg-white p-6 rounded-lg shadow-lg">
       <h3 class="text-lg font-medium leading-6 text-gray-900">Thông báo</h3>
       <p class="mt-2">Bạn cần phải đăng nhập để tiếp tục!</p>

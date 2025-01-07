@@ -66,7 +66,7 @@ export default {
       this.userRole = user.role;
     }
     this.fetchNotifications();
-    // this.fetchInterval = setInterval(this.fetchNotifications, 10000);
+    this.fetchInterval = setInterval(this.fetchNotifications, 10000);
   },
   computed: {
     ...mapGetters(['notifications', 'unreadNotificationsCount']),

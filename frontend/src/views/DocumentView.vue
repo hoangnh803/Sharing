@@ -108,14 +108,6 @@
 
       <!-- Share Buttons -->
       <div class="grid grid-cols-3 p-2">
-        <button class="flex items-center justify-center gap-2 p-2 hover:bg-gray-50 rounded-lg">
-          <Share2 class="w-5 h-5" />
-          <span class="text-sm">Chia sẻ</span>
-        </button>
-        <button class="flex items-center justify-center gap-2 p-2 hover:bg-gray-50 rounded-lg">
-          <Printer class="w-5 h-5" />
-          <span class="text-sm">In</span>
-        </button>
         <button @click="openReportPopup" class="flex items-center justify-center gap-2 p-2 hover:bg-gray-50 rounded-lg">
           <Flag class="w-5 h-5" />
           <span class="text-sm">Báo cáo</span>
